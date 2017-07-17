@@ -14,6 +14,13 @@ const server = http.createServer((request, response) => {
     body = Buffer.concat(body).toString();
   });
 
+  response.writeHead(200, {'Content-Type': 'application/json'});
+
+  const responseBody = {headers, method, url, body};
+
+  response.write(JSON.stringify(responseBody));
+  response.end();
+
   /*function findFile(file){
     fs.readFile('public/' + file, (err, data) => {
       request.write(fileContents);
