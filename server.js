@@ -15,27 +15,55 @@ const server = http.createServer((request, response) => {
   request.on('end', ()=> {
     body = Buffer.concat(body).toString();
     if(method === 'POST'){
+      console.log(url);
       var parsedBody = querystring.parse(body);
-      fs.exists('/public' + parsedBody.elementName, (err, exists) => {
+      fs.exists('/public' + url, (err, exists) => {
         if (err) throw err;
         if (exists){
-          //add to index.html
+          console.log("err", err);
+          console.log("exists", exists);
         }else {
-          createFile(parsedBody.elementName);
+          createFile(parsedBody);
         }
       });
     }
-   /* createFile(body);*/
+
     if(method === 'GET'){
     readFile(request.url);
     }
   });
 
+ /* function updateFile(file){
+    fs.appendFile(, (err)=> {
+      if (err) throw err;
+    })
+  }
+*/
   function createFile(file){
-    fs.writeFile('public/' + file + '.html', 'string', (err)=>{
+    fs.writeFile('public/' + file.elementName + '.html',
+      createdFileInfo(file), (err)=>{
+        console.log(file);
       if(err) throw err;
     });
   }
+
+  function createdFileInfo(data) {
+    console.log(data);
+   return '<!DOCTYPE html>' + '\n' +
+    '<html lang="en">' + '\n' +
+      '<head>' + '\n' +
+        '<meta charset="UTF-8">' + '\n' +
+        '<title>The Elements -' + data.elementName + '</title>' + '\n' +
+        '<link rel="stylesheet" href="/css/styles.css">' + '\n' +
+      '</head>' + '\n' +
+      '<body>' + '\n' +
+        '<h1>' + data.elementName + '</h1>' +'\n' +
+          '<h2>' + data.elementSymbol + '</h2>' + '\n' +
+          '<h3>' + data.elementAtomicNumber + '</h3>' + '\n' +
+          '<p>' + data.elementDescription + '</p>' + '\n' +
+      '</body>' + '\n' +
+    '</html>';
+}
 
   function readFile(file){
     fs.readFile('public' + file, (err, data) => {
