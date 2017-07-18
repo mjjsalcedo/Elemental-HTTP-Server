@@ -9,15 +9,33 @@ const server = http.createServer((request, response) => {
   let body = [];
 
   request.on('data', (chunk)=> {
-    console.log("chunk", chunk);
     body.push(chunk);
   });
 
   request.on('end', ()=> {
     body = Buffer.concat(body).toString();
+    if(method === 'POST'){
+      var parsedBody = querystring.parse(body);
+      fs.exists('/public' + parsedBody.elementName, (err, exists) => {
+        if (err) throw err;
+        if (exists){
+          //add to index.html
+        }else {
+          createFile(parsedBody.elementName);
+        }
+      });
+    }
+   /* createFile(body);*/
+    if(method === 'GET'){
     readFile(request.url);
-
+    }
   });
+
+  function createFile(file){
+    fs.writeFile('public/' + file + '.html', 'string', (err)=>{
+      if(err) throw err;
+    });
+  }
 
   function readFile(file){
     fs.readFile('public' + file, (err, data) => {
