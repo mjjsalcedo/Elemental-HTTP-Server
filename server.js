@@ -4,32 +4,41 @@ const querystring = require('querystring');
 const http = require('http');
 
 const server = http.createServer((request, response) => {
+
   const {headers, method, url} = request;
   let body = [];
+
   request.on('data', (chunk)=> {
+    console.log("chunk", chunk);
     body.push(chunk);
   });
 
   request.on('end', ()=> {
     body = Buffer.concat(body).toString();
+    readFile(request.url);
+
   });
 
-  response.writeHead(200, {'Content-Type': 'application/json'});
-
-  const responseBody = {headers, method, url, body};
-
-  response.write(JSON.stringify(responseBody));
-  response.end();
-
-  /*function findFile(file){
-    fs.readFile('public/' + file, (err, data) => {
-      request.write(fileContents);
-      request.end();
+  function readFile(file){
+    fs.readFile('public' + file, (err, data) => {
+      if(data !== undefined && file !== '/404.html') {
+        var moo = data.toString();
+        response.write(moo);
+        response.end();
+      } else {
+        console.log('moo');
+        fs.readFile('./404.html', (err, data) => {
+          var moo = data.toString();
+          response.write(moo);
+          response.end();
+        });
+      }
     });
-  }*/
+  }
 
 });
 
 server.listen(8080, '0.0.0.0', () => {
   console.log('server bound');
 });
+
