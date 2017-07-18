@@ -5,7 +5,7 @@ const http = require('http');
 
 const server = http.createServer((request, response) => {
 
-  const {headers, method, url} = request;
+  const {method, url} = request;
   let body = [];
 
   request.on('data', (chunk)=> {
@@ -15,13 +15,10 @@ const server = http.createServer((request, response) => {
   request.on('end', ()=> {
     body = Buffer.concat(body).toString();
     if(method === 'POST'){
-      console.log(url);
       var parsedBody = querystring.parse(body);
       fs.exists('/public' + url, (err, exists) => {
         if (err) throw err;
         if (exists){
-          console.log("err", err);
-          console.log("exists", exists);
         }else {
           createFile(parsedBody);
         }
@@ -29,41 +26,44 @@ const server = http.createServer((request, response) => {
     }
 
     if(method === 'GET'){
-    readFile(request.url);
+      readFile(url);
     }
   });
 
- /* function updateFile(file){
-    fs.appendFile(, (err)=> {
-      if (err) throw err;
-    })
+  function updateIndex(file) {
+    var newLi = '<li><a href="public/' + file.elementName + '.html">' + file.elementName + "</a></li>";
+      fs.appendFile('public/index.html', newLi/*, file.lastIndexOf('</li>')*/,(err) => {
+        if (err) throw err;
+      });
   }
-*/
+
   function createFile(file){
+    let successStatus = {'Content-Type': 'applciation/json', 'success': true};
     fs.writeFile('public/' + file.elementName + '.html',
       createdFileInfo(file), (err)=>{
-        console.log(file);
-      if(err) throw err;
-    });
+        if(err) throw err;
+      });
+      updateIndex(file);
+      response.write(JSON.stringify(successStatus));
+      response.end();
   }
 
   function createdFileInfo(data) {
-    console.log(data);
-   return '<!DOCTYPE html>' + '\n' +
+    return '<!DOCTYPE html>' + '\n' +
     '<html lang="en">' + '\n' +
-      '<head>' + '\n' +
-        '<meta charset="UTF-8">' + '\n' +
-        '<title>The Elements -' + data.elementName + '</title>' + '\n' +
-        '<link rel="stylesheet" href="/css/styles.css">' + '\n' +
-      '</head>' + '\n' +
-      '<body>' + '\n' +
-        '<h1>' + data.elementName + '</h1>' +'\n' +
-          '<h2>' + data.elementSymbol + '</h2>' + '\n' +
-          '<h3>' + data.elementAtomicNumber + '</h3>' + '\n' +
-          '<p>' + data.elementDescription + '</p>' + '\n' +
-      '</body>' + '\n' +
+    '<head>' + '\n' +
+    '<meta charset="UTF-8">' + '\n' +
+    '<title>The Elements - ' + data.elementName + '</title>' + '\n' +
+    '<link rel="stylesheet" href="/css/styles.css">' + '\n' +
+    '</head>' + '\n' +
+    '<body>' + '\n' +
+    '<h1>' + data.elementName + '</h1>' +'\n' +
+    '<h2>' + data.elementSymbol + '</h2>' + '\n' +
+    '<h3>' + data.elementAtomicNumber + '</h3>' + '\n' +
+    '<p>' + data.elementDescription + '</p>' + '\n' +
+    '</body>' + '\n' + '<p><a href="/">back</a></p>';
     '</html>';
-}
+  }
 
   function readFile(file){
     fs.readFile('public' + file, (err, data) => {
@@ -72,7 +72,6 @@ const server = http.createServer((request, response) => {
         response.write(moo);
         response.end();
       } else {
-        console.log('moo');
         fs.readFile('./404.html', (err, data) => {
           var moo = data.toString();
           response.write(moo);
